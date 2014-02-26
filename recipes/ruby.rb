@@ -47,9 +47,12 @@ rescue LoadError
     resources("package[#{pg_pack}]").run_action(:install)
   end
   
-  package "libpq-dev" do
-    action :nothing
-  end.run_action(:install)
+  # Without this "if" Chef also try to install this package on Centos/RHEL
+  if ["debian","ubuntu"].include? node['platform']
+    package "libpq-dev" do
+      action :nothing
+    end.run_action(:install)
+  end
 
   begin
     chef_gem "pg"
