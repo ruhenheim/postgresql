@@ -64,7 +64,7 @@ template "#{node['postgresql']['dir']}/postgresql.conf" do
   owner "postgres"
   group "postgres"
   mode 0600
-  notifies change_notify, 'service[postgresql]', :immediately
+  notifies change_notify, 'service[postgresql]', :delay
 end
 
 template "#{node['postgresql']['dir']}/pg_hba.conf" do
@@ -72,7 +72,13 @@ template "#{node['postgresql']['dir']}/pg_hba.conf" do
   owner "postgres"
   group "postgres"
   mode 00600
-  notifies change_notify, 'service[postgresql]', :immediately
+  notifies change_notify, 'service[postgresql]', :delay
+end
+
+service "postgresql" do
+  service_name node['postgresql']['server']['service_name']
+  supports :restart => true, :status => true, :reload => true
+  action [:enable, :start]
 end
 
 # NOTE: Consider two facts before modifying "assign-postgres-password":
