@@ -20,6 +20,7 @@
 #
 
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
+::Chef::Recipe.send(:include, Opscode::PostgresqlHelpers)
 
 include_recipe "postgresql::client"
 
@@ -57,22 +58,31 @@ when "debian"
   include_recipe "postgresql::server_debian"
 end
 
-change_notify = node['postgresql']['server']['config_change_notify']
+if node['postgresql']['slave']['you_are_slave']
 
-template "#{node['postgresql']['dir']}/postgresql.conf" do
-  source "postgresql.conf.erb"
-  owner "postgres"
-  group "postgres"
-  mode 0600
-  notifies change_notify, 'service[postgresql]', :delay
-end
+  # follow below for slave node
+  if node['postgresql']['slave']['start_base_backup']
+    service 'postgresql' do
+      service_name node['postgresql']['server']['service_name']
+      action :stop
+    end
 
-template "#{node['postgresql']['dir']}/pg_hba.conf" do
-  source "pg_hba.conf.erb"
-  owner "postgres"
-  group "postgres"
-  mode 00600
-  notifies change_notify, 'service[postgresql]', :delay
+    data_dir    = node['postgresql']['dir']
+    master_host = node['postgresql']['slave']['master_host']
+
+    execute "/bin/rm -rf #{data_dir}" do
+      only_if { ::FileTest.exist?(File.join(data_dir, "PG_VERSION")) }
+    end
+    execute "sudo -u postgres /usr/bin/pg_basebackup -h #{master_host} -D #{data_dir} -U postgres -v -P"
+  end
+
+  ['recovery.conf', 'postgresql.conf', 'pg_hba.conf'].each { |conf| apply_configure(conf) }
+
+else
+
+  # follow below for master node
+  ['postgresql.conf', 'pg_hba.conf'].each { |conf| apply_configure(conf) }
+
 end
 
 service "postgresql" do

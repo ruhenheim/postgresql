@@ -117,6 +117,18 @@ def locale_date_order
     end
 end
 
+def apply_configure(conf)
+  change_notify = node['postgresql']['server']['config_change_notify']
+
+  template "#{node['postgresql']['dir']}/#{conf}" do
+    source "#{conf}.erb"
+    owner "postgres"
+    group "postgres"
+    mode 00600
+    notifies change_notify, 'service[postgresql]', :delayed
+  end
+end
+
 #######
 # Timezone Configuration
 require 'find'
