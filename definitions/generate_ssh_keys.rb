@@ -11,9 +11,9 @@ define :generate_ssh_keys, :user_account => 'postgres' do
 
   raise ":user_account should be provided." if username.nil?
 
-  Chef::Log.debug("generate ssh skys for #{username}.")
+  Chef::Log.debug("generate ssh keys for #{username}.")
 
-  execute "generate ssh skys for #{username}." do
+  execute "generate ssh keys for #{username}." do
     user username
     creates "/var/lib/pgsql/.ssh/id_rsa.pub"
     command "ssh-keygen -t rsa -q -f /var/lib/pgsql/.ssh/id_rsa -P \"\""
