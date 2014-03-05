@@ -58,6 +58,9 @@ when "debian"
   include_recipe "postgresql::server_debian"
 end
 
+# definitions
+generate_ssh_keys
+
 if node['postgresql']['slave']['you_are_slave']
 
   # follow below for slave node
