@@ -45,9 +45,6 @@ directory node['postgresql']['dir'] do
   action :create
 end
 
-# definitions
-generate_ssh_keys
-
 node['postgresql']['server']['packages'].each do |pg_pack|
 
   package pg_pack
